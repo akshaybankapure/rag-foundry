@@ -1,0 +1,7 @@
+RAG Foundry is an open-source framework for evaluating Retrieval Augmented Generation systems.
+It was created to help engineers build reliable RAG pipelines.
+The framework supports interchangeable retrievers and generators.
+Users can define pipelines using YAML configuration files.
+RAG Foundry includes a built-in "LLM-as-a-Judge" evaluator.
+The project is designed to be CI-friendly, allowing for regression testing of RAG performance.
+Key metrics include Hit Rate, Mean Reciprocal Rank (MRR), Faithfulness, and Correctness.

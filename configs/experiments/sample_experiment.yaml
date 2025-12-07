@@ -1,0 +1,8 @@
+dataset: "corpora/sample/questions.json"
+pipelines:
+  - "minilm_faiss_gpt4omini"
+judge:
+  model: "gpt-4o-mini"
+metrics:
+  - "faithfulness"
+  - "correctness"

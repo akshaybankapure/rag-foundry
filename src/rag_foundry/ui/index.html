@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Foundry Dashboard</title>
+    <style>
+        body { font-family: -apple-system, system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f4f4f9; }
+        h1 { color: #333; }
+        .container { display: flex; gap: 20px; }
+        .sidebar { width: 250px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .main { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .exp-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .exp-item:hover { background: #f8f8f8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f8f8; }
+        .score-good { color: green; font-weight: bold; }
+        .score-bad { color: red; }
+        details { margin-bottom: 15px; padding: 10px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; }
+        summary { cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>RAG Foundry Dashboard</h1>
+    <div class="container">
+        <div class="sidebar" id="expList">
+            <h3>Experiments</h3>
+            <div id="loading">Loading...</div>
+        </div>
+        <div class="main" id="content">
+            <h2>Select an experiment</h2>
+        </div>
+    </div>
+
+    <script>
+        async function loadExperiments() {
+            const res = await fetch('/api/experiments');
+            const exps = await res.json();
+            const list = document.getElementById('expList');
+            list.innerHTML = '<h3>Experiments</h3>';
+            exps.forEach(exp => {
+                const div = document.createElement('div');
+                div.className = 'exp-item';
+                div.textContent = exp.id;
+                div.onclick = () => loadDetails(exp.id);
+                list.appendChild(div);
+            });
+        }
+
+        async function loadDetails(id) {
+            const res = await fetch(`/api/experiments/${id}`);
+            const data = await res.json();
+            const content = document.getElementById('content');
+            content.innerHTML = `<h2>Experiment: ${id}</h2>`;
+            
+            Object.keys(data).forEach(pipelineId => {
+                const results = data[pipelineId];
+                let html = `<h3>Pipeline: ${pipelineId}</h3>`;
+                
+                // Summary Stats
+                const faith = results.reduce((acc, r) => acc + r.judge_scores.faithfulness, 0) / results.length;
+                const corr = results.reduce((acc, r) => acc + r.judge_scores.correctness, 0) / results.length;
+                
+                html += `<p><strong>Avg Faithfulness:</strong> ${faith.toFixed(2)} | <strong>Avg Correctness:</strong> ${corr.toFixed(2)}</p>`;
+                
+                results.forEach((r, idx) => {
+                    html += `
+                    <details>
+                        <summary>Q${idx+1}: ${r.question} (Faith: ${r.judge_scores.faithfulness}, Corr: ${r.judge_scores.correctness})</summary>
+                        <div style="margin-top:10px">
+                            <p><strong>Answer:</strong> ${r.answer}</p>
+                            <p><strong>Ground Truth:</strong> ${r.ground_truth}</p>
+                            <p><strong>Reasoning:</strong> ${r.judge_scores.reasoning}</p>
+                            <hr>
+                            <p><small>Context:</small></p>
+                            <ul>
+                                ${r.retrieved_docs.map(d => `<li>${d.content.substring(0, 150)}...</li>`).join('')}
+                            </ul>
+                        </div>
+                    </details>
+                    `;
+                });
+                content.innerHTML += html;
+            });
+        }
+
+        loadExperiments();
+    </script>
+</body>
+</html>

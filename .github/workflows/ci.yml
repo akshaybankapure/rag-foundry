@@ -1,0 +1,41 @@
+name: RAG Foundry CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+        
+    - name: Install dependencies
+      run: |
+        pip install -e ".[dev]"
+        
+    - name: Run Pytest
+      run: |
+        pytest
+        
+    - name: Run Regression Experiment
+      if: github.event_name == 'pull_request'
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        # Ingest sample data
+        rag-foundry ingest corpora/sample/ --output-index storage/ci_index.faiss
+        
+        # Run small regression experiment
+        rag-foundry run configs/experiments/sample_experiment.yaml
+        
+        # In a real scenario, we would parse reports/latest/results.json and compare
+        # with a baseline.json stored in the repo.
+        # For now, we just ensure it runs without error.

@@ -1,0 +1,17 @@
+[
+    {
+        "id": "1",
+        "question": "What is RAG Foundry?",
+        "ground_truth": "RAG Foundry is an open-source framework for evaluating Retrieval Augmented Generation systems."
+    },
+    {
+        "id": "2",
+        "question": "What metrics does it support?",
+        "ground_truth": "It supports Hit Rate, MRR, Faithfulness, and Correctness."
+    },
+    {
+        "id": "3",
+        "question": "Can I define pipelines with YAML?",
+        "ground_truth": "Yes, users can define pipelines using YAML configuration files."
+    }
+]
